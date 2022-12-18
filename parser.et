@@ -82,10 +82,7 @@ of *Span(Token) -> Maybe(*AST)
 fun parse_literal tk_span = match peek_first(*tk_span) {
     | .some.integer x: {
         eat_first(tk_span);
-
-        var ast = new AST;
-        *ast = .lit.tok.integer x;
-        .some ast
+        .some new AST {.lit.tok.integer x}
     }
     | otherwise: .none
     };
