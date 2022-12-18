@@ -1,0 +1,24 @@
+ast;
+
+export {
+
+    of *AST -> Int
+    fun interpret ast;
+
+}
+
+
+fun interpret ast = match *ast {
+    | .lit literal: literal.tok.integer
+    | .unary unary: -interpret(unary.operand)
+    | .bin binary:  {
+        var left = interpret(binary.left);
+        var right = interpret(binary.right);
+
+        match binary.op {
+        | .plus: left + right
+        | .minus: left - right
+        }
+    }
+    };
+

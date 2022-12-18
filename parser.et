@@ -1,0 +1,94 @@
+span;
+parse;
+lexer;
+
+export {
+
+    of *Span(Token) -> *AST
+    fun parse_expr token_stream;
+
+}
+
+######################################################################
+
+
+fun parse_expr tk_span = match parse_binary(tk_span) {
+    | .some x: x
+    | .none: { assert(false); unit ~> _ }
+    };
+
+
+######################################################################
+
+
+of *Span(Token) -> Maybe(*AST)
+fun parse_binary tk_span = {
+
+    var left = match parse_unary(tk_span) {
+    | .some s: s
+    | .none: { return .none; unit ~> _ }
+    };
+
+    var tok = match peek_first(*tk_span) {
+    | .none: { return .some left; tok }
+    | .some tok: match tok {
+        | .plus: tok
+        | .minus: tok
+        | otherwise: { return .some left; tok }
+        }
+    };
+
+    eat_first(tk_span);
+
+    match parse_binary(tk_span) {
+    | .some binary: {
+        var ast = new AST;
+        *ast = .bin { .op = tok,
+                      .left = left,
+                      .right = binary, };
+        .some ast
+    }
+    }
+};
+
+######################################################################
+
+of *Span(Token) -> Maybe(*AST)
+fun parse_unary tk_span = match peek_first(*tk_span) {
+    | .some.minus: {
+
+        eat_first(tk_span);
+
+        match parse_literal(tk_span) {
+        | .some literal: {
+            var ast = new AST;
+            *ast = .unary { .op = .minus,
+                            .operand = literal, };
+            .some ast
+        }
+
+        | .none: .none
+        }
+
+    }
+    | otherwise: parse_literal(tk_span)
+    };
+
+
+######################################################################
+
+
+of *Span(Token) -> Maybe(*AST)
+fun parse_literal tk_span = match peek_first(*tk_span) {
+    | .some.integer x: {
+        eat_first(tk_span);
+
+        var ast = new AST;
+        *ast = .lit.tok.integer x;
+        .some ast
+    }
+    | otherwise: .none
+    };
+
+
+######################################################################

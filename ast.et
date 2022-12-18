@@ -1,0 +1,29 @@
+lexer;
+
+export {
+
+    type AST = sum {
+
+        | lit: LiteralExpression
+        | bin: BinaryExpression
+        | unary: UnaryExpression
+
+    };
+
+    type LiteralExpression = struct {
+        tok: Token,
+    };
+
+    type BinaryExpression = struct {
+        op: Token,
+        left: *AST,
+        right: *AST,
+    };
+
+    type UnaryExpression = struct {
+        op: Token,
+        operand: *AST,
+    };
+
+}
+

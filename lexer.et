@@ -1,0 +1,126 @@
+str;
+vec;
+maybe;
+parse;
+
+export {
+
+    type Token = sum {
+       | integer: Int
+       | string: Str
+       | identifier: Str
+       | plus | minus
+    };
+
+
+    of String -> *Vec(Token)
+    fun tokenize input;
+
+}
+
+
+######################################################################
+
+of *Str -> Maybe(Token)
+fun try_match_number input = {
+    var n = parse_num_with_len(*input);
+
+    if n.len == 0 {
+        return .none;
+    };
+
+    *input = cut_prefix(*input, n.len);
+    .some.integer n.val
+};
+
+of *Str -> Maybe(Token)
+fun try_match_word input = {
+    var word = parse_word(*input);
+
+    if word.size == 0 {
+        return .none;
+    };
+
+    *input = cut_prefix(*input, word.size);
+    .some.identifier word
+};
+
+
+of *Str -> Unit
+fun skip_whitespace input = {
+    match *input->data {
+    | '\t': {}
+    | '\n': {}
+    |  ' ': {}
+    | other: { return; }
+    };
+    input->data = input->data + 1;
+    skip_whitespace(input);
+};
+
+
+of *Str -> Maybe(Token)
+fun match_operators input = {
+    var mb_tok = match *input->data {
+    | '+': (.some.plus)
+    | '-': (.some.minus)
+    | other: { return .none; .none }
+    };
+    input->data = input->data + 1;
+    mb_tok
+};
+
+
+of *Str -> Maybe(Token)
+fun get_next_token input = {
+    print_str(input);
+
+    skip_whitespace(input);
+
+    match try_match_number(input) {
+    | .none: unit
+    | token: { return token; }
+    };
+
+    match match_operators(input) {
+    | .none: unit
+    | token: { return token; }
+    };
+
+    try_match_word(input)
+};
+
+fun tokenize_inner vec input = match get_next_token(input) {
+    | .some token: {
+        append(vec, token);
+        tokenize_inner(vec, input);
+    }
+    | otherwise: unit
+    };
+
+
+fun tokenize input = {
+    print("Input string: %s\n", input);
+    var result = make_vec( .integer 0, 0);
+    var str = mk_str(input);
+    tokenize_inner(result, &str);
+    result
+};
+
+
+of Token -> Unit
+fun print_token tok = match tok {
+    | .plus: { print("+"); }
+    | .minus: { print("-"); }
+    | .integer x: { print("%d", x); }
+    | .identifier id: { print("%.*s", id.size, id.data); }
+    };
+
+
+fun print_tokens tk_vec size = if size == 0 {
+        print("\n");
+    } else {
+        print_token(tk_vec[0]);
+        print_tokens(tk_vec + 1, size - 1);
+    };
+
