@@ -46,25 +46,31 @@ fun try_match_word input = {
 };
 
 
-of *Str -> Unit
+of *Str -> ()
 fun skip_whitespace input = {
-    match *input->data {
-    | '\t': {}
-    | '\n': {}
+    if input->size == 0 then return ();
+
+    match input->data[0] {
     |  ' ': {}
-    | other: { return; }
+    | '\n': {}
+    | '\t': {}
+    | other: return ()
     };
+
     input->data = input->data + 1;
-    skip_whitespace(input);
+    input->size = input->size - 1;
+
+    skip_whitespace(input)
 };
+
 
 
 of *Str -> Maybe(Token)
 fun match_operators input = {
     var mb_tok = match *input->data {
-    | '+': (.some.plus)
-    | '-': (.some.minus)
-    | other: { return .none; .none }
+    | '+': .some.plus
+    | '-': .some.minus
+    |  _ : return .none
     };
     input->data = input->data + 1;
     mb_tok
@@ -79,12 +85,12 @@ fun get_next_token input = {
 
     match try_match_number(input) {
     | .none: unit
-    | token: { return token; }
+    | token: return token
     };
 
     match match_operators(input) {
     | .none: unit
-    | token: { return token; }
+    | token: return token
     };
 
     try_match_word(input)
@@ -110,15 +116,15 @@ fun tokenize input = {
 
 of Token -> Unit
 fun print_token tok = match tok {
-    | .plus: { print("+"); }
-    | .minus: { print("-"); }
-    | .integer x: { print("%d", x); }
-    | .identifier id: { print("%.*s", id.size, id.data); }
+    | .plus: print("+")
+    | .minus: print("-")
+    | .integer x: print("%d", x)
+    | .identifier id: print("%.*s", id.size, id.data)
     };
 
 
 fun print_tokens tk_vec size = if size == 0 {
-        print("\n");
+        print("\n")
     } else {
         print_token(tk_vec[0]);
         print_tokens(tk_vec + 1, size - 1);

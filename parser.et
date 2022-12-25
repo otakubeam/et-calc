@@ -14,7 +14,7 @@ export {
 
 fun parse_expr tk_span = match parse_binary(tk_span) {
     | .some x: x
-    | .none: { assert(false); unit ~> _ }
+    | .none: return assert(false) ~> _
     };
 
 
@@ -26,16 +26,16 @@ fun parse_binary tk_span = {
 
     var left = match parse_unary(tk_span) {
     | .some s: s
-    | .none: { return .none; unit ~> _ }
+    | .none: return .none
     };
 
     var tok = match peek_first(*tk_span) {
-    | .none: { return .some left; tok }
     | .some tok: match tok {
         | .plus: tok
         | .minus: tok
-        | otherwise: { return .some left; tok }
+        | otherwise: return .some left
         }
+    | .none: return .some left
     };
 
     eat_first(tk_span);
@@ -66,7 +66,6 @@ fun parse_unary tk_span = match peek_first(*tk_span) {
                             .operand = literal, };
             .some ast
         }
-
         | .none: .none
         }
 
