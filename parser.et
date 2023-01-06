@@ -1,5 +1,7 @@
 span;
 parse;
+
+ast;
 lexer;
 
 export {
